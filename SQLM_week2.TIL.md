@@ -128,60 +128,96 @@ FROM purchase_log_with_coupon
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    user_id,
+    CONCAT(pref_name, ' ', city_name) AS pref_city
+FROM mst_user_location;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-5.png)
 
 ### 2-2 여러 개의 값을 비교하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    year,
+    q1,
+    q2,
+    CASE
+        WHEN q1 < q2 THEN '+'
+        WHEN q1 = q2 THEN '='
+        ELSE '-'
+    END AS judge_q1_q2,
+    q2 - q1 AS diff_q2_q1,
+    SIGN(q2 - q1) AS sign_q2_q1
+FROM quarterly_sales
+ORDER BY year;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-6.png)
 
 ### 2-3 2개의 값 비율 계산하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    dt,
+    ad_id,
+    clicks / impressions AS ctr,
+    100.0 * clicks / impressions AS ctr_as_percent
+FROM advertising_stats
+WHERE dt = '2017-04-01'
+ORDER BY dt, ad_id;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-7.png)
 
 ### 2-4 두 값의 거리 계산하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    ABS(x1 - x2) AS abs,
+    SQRT(POWER(x1 - x2, 2)) AS rms
+FROM location_1d;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-8.png)
 
 ### 2-5 날짜/시간을 계산하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    user_id,
+    register_stamp,
+    register_stamp + INTERVAL 1 HOUR AS after_1_hour,
+    register_stamp - INTERVAL 30 MINUTE AS before_30_minutes,
+    DATE(register_stamp) AS register_date,
+    DATE(register_stamp + INTERVAL 1 DAY) AS after_1_day,
+    DATE(register_stamp - INTERVAL 1 MONTH) AS before_1_month
+FROM mst_users_with_dates;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-9.png)
 
 ### 2-6 IP 주소 다루기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    ip,
+    CAST(SUBSTRING_INDEX(ip, '.', 1) AS UNSIGNED) * POW(2, 24) +
+    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 2), '.', -1) AS UNSIGNED) * POW(2, 16) +
+    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 3), '.', -1) AS UNSIGNED) * POW(2, 8) +
+    CAST(SUBSTRING_INDEX(ip, '.', -1) AS UNSIGNED) * POW(2, 0) AS ip_integer
+FROM (
+    SELECT '192.168.0.1' AS ip
+) AS t;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-10.png)
 
 ## 03. 하나의 테이블에 대한 조작 
 
