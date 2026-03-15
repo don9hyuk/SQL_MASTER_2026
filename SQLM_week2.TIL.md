@@ -226,40 +226,82 @@ FROM (
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    COUNT(*) AS total_count,
+    COUNT(DISTINCT user_id) AS user_count,
+    COUNT(DISTINCT product_id) AS product_count,
+    SUM(score) AS sum,
+    AVG(score) AS avg,
+    MAX(score) AS max,
+    MIN(score) AS min
+FROM review;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-11.png)
 
 ### 3-2 그룹 내부의 순서
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    product_id,
+    score,
+    ROW_NUMBER() OVER (ORDER BY score DESC) AS row_num,
+    RANK() OVER (ORDER BY score DESC) AS rank_num,
+    LAG(product_id, 1) OVER (ORDER BY score DESC) AS lag1,
+    LAG(product_id, 2) OVER (ORDER BY score DESC) AS lag2,
+    LEAD(product_id, 1) OVER (ORDER BY score DESC) AS lead1,
+    LEAD(product_id, 2) OVER (ORDER BY score DESC) AS lead2
+FROM popular_products
+ORDER BY row_num;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-12.png)
 
 ### 3-3 세로 기반 데이터를 가로 기반으로 변환하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    dt,
+    MAX(CASE WHEN indicator = 'impressions' THEN val END) AS impressions,
+    MAX(CASE WHEN indicator = 'sessions' THEN val END) AS sessions,
+    MAX(CASE WHEN indicator = 'users' THEN val END) AS users
+FROM daily_kpi
+GROUP BY dt
+ORDER BY dt;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-13.png)
 
 ### 3-4 가로 기반 데이터를 세로 기반으로 변환하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    q.year,
+    CASE
+        WHEN p.idx = 1 THEN 'q1'
+        WHEN p.idx = 2 THEN 'q2'
+        WHEN p.idx = 3 THEN 'q3'
+        WHEN p.idx = 4 THEN 'q4'
+    END AS quarter,
+    CASE
+        WHEN p.idx = 1 THEN q.q1
+        WHEN p.idx = 2 THEN q.q2
+        WHEN p.idx = 3 THEN q.q3
+        WHEN p.idx = 4 THEN q.q4
+    END AS sales
+FROM quarterly_sales AS q
+CROSS JOIN (
+    SELECT 1 AS idx
+    UNION ALL SELECT 2
+    UNION ALL SELECT 3
+    UNION ALL SELECT 4
+) AS p;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-14.png)
 
 
 ## 04. 여러 개의 테이블 조작하기
