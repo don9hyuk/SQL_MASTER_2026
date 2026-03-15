@@ -50,50 +50,75 @@
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    user_id,
+    CASE
+        WHEN register_device = 1 THEN '데스크톱'
+        WHEN register_device = 2 THEN '스마트폰'
+        WHEN register_device = 3 THEN '애플리케이션'
+        ELSE ''
+    END AS device_name
+FROM mst_users;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image.png)
 
 ### 1-2 URL에서 요소 추출하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    stamp,
+    SUBSTRING_INDEX(SUBSTRING_INDEX(referrer, '/', 3), '/', -1) AS referrer_host
+FROM access_log;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-1.png)
 
 ### 1-3 문자열을 배열로 분해하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    stamp,
+    url,
+    SUBSTRING_INDEX(SUBSTRING_INDEX(url, '/', 4), '/', -1) AS path1,
+    SUBSTRING_INDEX(SUBSTRING_INDEX(url, '/', 5), '/', -1) AS path2
+FROM access_log;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-2.png)
 
 ### 1-4 날짜와 타임스탬프 다루기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    CURRENT_DATE() AS dt,
+    CURRENT_TIMESTAMP() AS stamp;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-3.png)
 
 ### 1-5 결손 값을 디폴트 값으로 대치하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    purchase_id,
+    amount,
+    coupon,
+    amount - coupon AS discount_amount1,
+    amount - COALESCE(coupon, 0) AS discount_amount2
+FROM purchase_log_with_coupon
+;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-4.png)
 
 
 ## 2. 여러 개의 값에 대한 조작 
