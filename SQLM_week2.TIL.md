@@ -311,50 +311,116 @@ CROSS JOIN (
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    'app1' AS app_name,
+    user_id,
+    name,
+    email
+FROM app1_mst_users
+
+UNION ALL
+
+SELECT
+    'app2' AS app_name,
+    user_id,
+    name,
+    NULL AS email
+FROM app2_mst_users;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-15.png)
 
 ### 4-2 여러 개의 테이블을 가로로 정렬하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
-```
+SELECT
+    m.category_id,
+    m.name,
+    s.sales,
+    r.product_id AS sale_product
+FROM mst_categories AS m
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+JOIN category_sales AS s
+    ON m.category_id = s.category_id
+
+JOIN product_sale_ranking AS r
+    ON m.category_id = r.category_id;
+```
+![alt text](image-16.png)
 
 ### 4-3 조건 플래그를 0과 1로 표현하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    m.user_id,
+    m.card_number,
+    COUNT(p.user_id) AS purchase_count,
+
+    CASE
+        WHEN m.card_number IS NOT NULL THEN 1
+        ELSE 0
+    END AS has_card,
+
+    SIGN(COUNT(p.user_id)) AS has_purchased
+
+FROM mst_users_with_card_number AS m
+
+LEFT JOIN purchase_log AS p
+    ON m.user_id = p.user_id
+
+GROUP BY
+    m.user_id,
+    m.card_number;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-17.png)
 
 ### 4-4 계산한 테이블에 이름 붙여 재사용하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH product_sale_ranking AS (
+    SELECT
+        category_name,
+        product_id,
+        sales,
+        ROW_NUMBER() OVER (
+            PARTITION BY category_name
+            ORDER BY sales DESC
+        ) AS rank_num
+    FROM product_sales
+)
+SELECT *
+FROM product_sale_ranking;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-18.png)
 
 ### 4-5 유사 테이블 만들기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH mst_devices AS (
+
+    SELECT 1 AS device_id, 'PC' AS device_name
+    UNION ALL
+    SELECT 2 AS device_id, 'SP' AS device_name
+    UNION ALL
+    SELECT 3 AS device_id, '애플리케이션' AS device_name
+
+)
+
+SELECT *
+FROM mst_devices;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-19.png)
 
 
 
