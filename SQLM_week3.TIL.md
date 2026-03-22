@@ -48,60 +48,212 @@
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    dt,
+    COUNT(*) AS purchase_count,
+    SUM(purchase_amount) AS total_amount,
+    AVG(purchase_amount) AS avg_amount
+FROM purchase_log
+GROUP BY dt
+ORDER BY dt;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-20.png)
  
 ### 1-2 이동평균을 사용한 날짜별 추이 보기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+SELECT
+    dt,
+    SUM(purchase_amount) AS total_amount,
+
+    AVG(SUM(purchase_amount))
+    OVER (
+        ORDER BY dt
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS seven_day_avg_amount,
+
+    CASE
+        WHEN
+            7 = COUNT(*)
+            OVER (
+                ORDER BY dt
+                ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+            )
+        THEN
+            AVG(SUM(purchase_amount))
+            OVER (
+                ORDER BY dt
+                ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+            )
+    END AS seven_day_avg_amount_strict
+
+FROM purchase_log
+GROUP BY dt
+ORDER BY dt;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-21.png)
  
 ### 1-3 당월 매출 누계 구하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH daily_purchase AS (
+    SELECT
+        dt,
+        SUBSTRING(dt, 1, 4) AS year,
+        SUBSTRING(dt, 6, 2) AS month,
+        SUBSTRING(dt, 9, 2) AS date,
+        SUM(purchase_amount) AS purchase_amount,
+        COUNT(order_id) AS orders
+    FROM purchase_log
+    GROUP BY dt
+)
+SELECT
+    *
+FROM daily_purchase
+ORDER BY dt;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-22.png)
 
 ### 1-4 월별 매출의 작대비 구하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH daily_purchase AS (
+    SELECT
+        dt,
+        SUBSTRING(dt, 1, 4) AS year,
+        SUBSTRING(dt, 6, 2) AS month,
+        SUBSTRING(dt, 9, 2) AS date,
+        SUM(purchase_amount) AS purchase_amount,
+        COUNT(order_id) AS orders
+    FROM purchase_log
+    GROUP BY dt
+)
+SELECT
+    month,
+    SUM(CASE WHEN year = '2014' THEN purchase_amount END) AS amount_2014,
+    SUM(CASE WHEN year = '2015' THEN purchase_amount END) AS amount_2015,
+    100.0 *
+    SUM(CASE WHEN year = '2015' THEN purchase_amount END) /
+    SUM(CASE WHEN year = '2014' THEN purchase_amount END) AS rate
+FROM daily_purchase
+GROUP BY month
+ORDER BY month;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-23.png)
  
 ### 1-5 Z 차트로 업적의 추이 확인하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH daily_purchase AS (
+    SELECT
+        dt,
+        SUBSTRING(dt, 1, 4) AS yy,
+        SUBSTRING(dt, 6, 2) AS mm,
+        SUBSTRING(dt, 9, 2) AS dd,
+        SUM(purchase_amount) AS purchase_amount,
+        COUNT(order_id) AS orders
+    FROM purchase_log
+    GROUP BY dt
+),
+monthly_amount AS (
+    SELECT
+        yy,
+        mm,
+        SUM(purchase_amount) AS amount
+    FROM daily_purchase
+    GROUP BY yy, mm
+),
+calc_index AS (
+    SELECT
+        yy,
+        mm,
+        amount,
+        SUM(CASE WHEN yy = '2015' THEN amount END) OVER (
+            ORDER BY yy, mm
+            ROWS UNBOUNDED PRECEDING
+        ) AS agg_amount,
+        SUM(amount) OVER (
+            ORDER BY yy, mm
+            ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
+        ) AS year_avg_amount
+    FROM monthly_amount
+)
+SELECT
+    CONCAT(yy, '-', mm) AS `year_month`,
+    amount,
+    agg_amount,
+    year_avg_amount
+FROM calc_index
+WHERE yy = '2015'
+ORDER BY CONCAT(yy, '-', mm);
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-24.png)
  
 ### 1-6 매출을 파악할 때 중요 포인트 
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
-```
+WITH daily_purchase AS (
+    SELECT
+        dt,
+        SUBSTRING(dt,1,4) AS yy,
+        SUBSTRING(dt,6,2) AS mm,
+        SUM(purchase_amount) AS purchase_amount,
+        COUNT(order_id) AS orders
+    FROM purchase_log
+    GROUP BY dt
+),
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+monthly_purchase AS (
+    SELECT
+        yy,
+        mm,
+        SUM(orders) AS orders,
+        AVG(purchase_amount) AS avg_amount,
+        SUM(purchase_amount) AS monthly
+    FROM daily_purchase
+    GROUP BY yy, mm
+)
+
+SELECT
+    CONCAT(yy,'-',mm) AS year_month,
+    orders,
+    avg_amount,
+    monthly,
+
+    SUM(monthly) OVER (
+        PARTITION BY yy
+        ORDER BY mm
+        ROWS UNBOUNDED PRECEDING
+    ) AS agg_amount,
+
+    LAG(monthly, 12) OVER (
+        ORDER BY yy, mm
+    ) AS last_year,
+
+    100 * monthly /
+    LAG(monthly, 12) OVER (
+        ORDER BY yy, mm
+    ) AS rate
+
+FROM monthly_purchase
+ORDER BY yy, mm;
+```
+![alt text](image-25.png)
 
 
 ## 2. 다면적인 축을 사용해 데이터 집계하기 
@@ -111,40 +263,169 @@
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
-```
+WITH subcategory_amount AS (
+    SELECT
+        category,
+        sub_category,
+        SUM(price) AS amount
+    FROM purchase_detail_log
+    GROUP BY category, sub_category
+),
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+category_amount AS (
+    SELECT
+        category,
+        'all' AS sub_category,
+        SUM(price) AS amount
+    FROM purchase_detail_log
+    GROUP BY category
+),
+
+total_amount AS (
+    SELECT
+        'all' AS category,
+        'all' AS sub_category,
+        SUM(price) AS amount
+    FROM purchase_detail_log
+)
+
+SELECT category, sub_category, amount
+FROM subcategory_amount
+
+UNION ALL
+
+SELECT category, sub_category, amount
+FROM category_amount
+
+UNION ALL
+
+SELECT category, sub_category, amount
+FROM total_amount;
+```
+![alt text](image-26.png)
 
 ### 2-2 ABC 분석으로 잘 팔리는 상품 판별하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+WITH monthly_sales AS (
+    SELECT
+        category,
+        SUM(price) AS amount
+    FROM purchase_detail_log
+    GROUP BY category
+),
+sales_composition_ratio AS (
+    SELECT
+        category,
+        amount,
+        100.0 * amount / SUM(amount) OVER () AS composition_ratio,
+        100.0 * SUM(amount) OVER (
+            ORDER BY amount DESC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) / SUM(amount) OVER () AS cumulative_ratio
+    FROM monthly_sales
+)
+SELECT
+    *,
+    CASE
+        WHEN cumulative_ratio BETWEEN 0 AND 70 THEN 'A'
+        WHEN cumulative_ratio BETWEEN 70 AND 90 THEN 'B'
+        WHEN cumulative_ratio BETWEEN 90 AND 100 THEN 'C'
+    END AS rank_val
+FROM sales_composition_ratio
+ORDER BY amount DESC;
 ```
-
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-27.png)
 
 ### 2-3 팬 차트로 상품의 매출 증가율 확인하기
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
+ WITH daily_category_amount AS (
+    SELECT
+        dt,
+        category,
+        SUBSTRING(dt, 1, 4) AS year,
+        SUBSTRING(dt, 6, 2) AS month,
+        SUBSTRING(dt, 9, 2) AS day,
+        SUM(price) AS amount
+    FROM purchase_detail_log
+    GROUP BY dt, category
+),
+
+monthly_category_amount AS (
+    SELECT
+        CONCAT(year, '-', month) AS year_month_,
+        category,
+        SUM(amount) AS amount
+    FROM daily_category_amount
+    GROUP BY year, month, category
+)
+
+SELECT
+    year_month_,
+    category,
+    amount,
+
+    FIRST_VALUE(amount)
+    OVER (
+        PARTITION BY category
+        ORDER BY year_month_
+    ) AS base_amount,
+
+    100.0 * amount /
+    FIRST_VALUE(amount)
+    OVER (
+        PARTITION BY category
+        ORDER BY year_month_
+    ) AS rate
+
+FROM monthly_category_amount
+ORDER BY year_month_, category;
 ```
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+![alt text](image-28.png)
 
 ### 2-4 히스토그램으로 구매 가격대 집계하기 
 
 <!-- 이 부분을 지우고 새롭게 배운 내용을 자유롭게 정리해주세요. -->
 
 ```sql
-여기에 코드를 적어주세요.
-```
+WITH stats AS (
+    SELECT
+        MIN(price) AS min_price,
+        MAX(price) AS max_price,
+        MAX(price) - MIN(price) AS range_price,
+        5 AS bucket_num
+    FROM purchase_detail_log
+),
 
-<!-- 이 부분을 지우고 실행 결과 화면을 제출해주세요. -->
+purchase_log_with_bucket AS (
+    SELECT
+        p.price,
+        s.min_price,
+
+        p.price - s.min_price AS diff,
+
+        s.range_price / s.bucket_num AS bucket_range,
+
+        FLOOR(
+            (p.price - s.min_price) /
+            (s.range_price / s.bucket_num)
+        ) + 1 AS bucket
+
+    FROM purchase_detail_log p
+    CROSS JOIN stats s
+)
+
+SELECT *
+FROM purchase_log_with_bucket
+ORDER BY price;
+```
+![alt text](image-29.png) 
 
 
 
